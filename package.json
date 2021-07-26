@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
+  "name": "add-to-milestone-action",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeScript template action",
+  "description": "Add PR to a milestone",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/andrefcdias/add-to-milestone.git"
   },
   "keywords": [
     "actions",
-    "node",
-    "setup"
+    "pr",
+    "milestone"
   ],
-  "author": "",
+  "author": "andrefcdias",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.4.0"
@@ -34,6 +34,7 @@
     "eslint": "^7.31.0",
     "eslint-plugin-github": "^4.1.1",
     "eslint-plugin-jest": "^24.3.6",
+    "eslint-plugin-prettier": "^3.4.0",
     "jest": "^27.0.6",
     "js-yaml": "^4.1.0",
     "prettier": "2.2.1",
