@@ -1,19 +1,73 @@
-import * as core from '@actions/core'
-import {wait} from './wait'
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 
-async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+type GithubClient = ReturnType<typeof github.getOctokit>;
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    core.setFailed(error.message)
-  }
+const logDebug = (message: string) => {
+    console.log(message)
+    core.debug(message)
 }
 
-run()
+const getPrNumber = (): number => {
+    logDebug(JSON.stringify(github))
+    logDebug(`PR context: ${JSON.stringify(github.context.payload.pull_request)}`)
+
+    const prNumber = github.context.payload.pull_request?.number;
+    if (prNumber === undefined) {
+        throw 'Action not run with a PR.';
+    }
+
+    return prNumber
+}
+
+const getMilestoneNumber = async (client: GithubClient, milestoneName: string): Promise<number> => {
+    const milestones = await client.rest.issues.listMilestones({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+    });
+    logDebug(`Milestones: ${JSON.stringify(milestones)}`)
+
+    const milestone = milestones.data.find(milestone => milestone.title == milestoneName);
+
+    // Check if milestone exists
+    const milestoneNumber = milestone?.number;
+    if (milestoneNumber === undefined) {
+        throw `Milestone with the name ${milestoneName} was not found.`;
+    }
+    logDebug(`Using milestone: ${JSON.stringify(milestone)}`)
+
+    return milestoneNumber
+}
+
+const updateIssueWithMilestone = async (client: GithubClient, prNumber: number, milestoneNumber: number) => {
+    core.info(`Updating pull request ${prNumber} with milestone ${milestoneNumber}`)
+    await client.rest.issues.update({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: prNumber,
+        milestone: milestoneNumber,
+    });
+}
+
+export const run = async (): Promise<void> => {
+    try {
+        const token = core.getInput('repo-token', { required: true });
+        const milestoneName = core.getInput('milestone', { required: true });
+        logDebug(`Tokens: ${JSON.stringify({ token, milestoneName })}`);
+
+        // Check if PR exists
+        const prNumber = getPrNumber()
+
+        // Initialize Github client
+        const client: GithubClient = github.getOctokit(token);
+
+        // Get milestone
+        const milestoneNumber = await getMilestoneNumber(client, milestoneName)
+
+        // Add to milestone
+        await updateIssueWithMilestone(client, prNumber, milestoneNumber)
+    } catch (error) {
+        console.log(error);        
+        throw core.setFailed(error);
+    }
+};

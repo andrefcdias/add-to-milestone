@@ -1,29 +1,61 @@
-import {wait} from './wait'
-import * as process from 'process'
-import * as cp from 'child_process'
-import * as path from 'path'
-import {expect, test} from '@jest/globals'
+import { run } from './main';
+import { expect, jest, test } from '@jest/globals';
+import { getOctokit } from '@actions/github'
+import { randomInt } from 'crypto';
+import { Mock } from 'jest-mock';
+import * as casual from 'casual'
 
-test('throws invalid number', async () => {
-  const input = parseInt('foo', 10)
-  await expect(wait(input)).rejects.toThrow('milliseconds not a number')
-})
+const pullRequestNumberMock = casual.integer(0)
+const getInputFn = jest.fn()
+const updateIssueFn = jest.fn()
+const listMilestonesFn = jest.fn<ReturnType<any>, Parameters<any>>()
 
-test('wait 500 ms', async () => {
-  const start = new Date()
-  await wait(500)
-  const end = new Date()
-  var delta = Math.abs(end.getTime() - start.getTime())
-  expect(delta).toBeGreaterThan(450)
-})
+jest.mock('@actions/core', () => ({
+  info: jest.fn(),
+  debug: jest.fn(),
+  getInput: () => getInputFn()
+}))
+jest.mock('@actions/github', () => ({
+  context: {
+    repo: {
+      owner: " ",
+      repo: " "
+    },
+    payload: {
+      pull_request: {
+        get number() {
+          return pullRequestNumberMock
+        }
+      }
+    }
+  },
+  getOctokit: () => ({
+    rest: {
+      issues: {
+        update: updateIssueFn,
+        listMilestones: listMilestonesFn
+      }
+    }
+  })
+}))
 
-// shows how the runner will run a javascript action with env / stdout protocol
-test('test runs', () => {
-  process.env['INPUT_MILLISECONDS'] = '500'
-  const np = process.execPath
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
-  const options: cp.ExecFileSyncOptions = {
-    env: process.env
+test('returns a PR for the given context', async () => {
+  // Given
+  const mockMilestone = {
+    title: casual.title,
+    number: casual.integer(0)
   }
-  console.log(cp.execFileSync(np, [ip], options).toString())
-})
+  getInputFn.mockReturnValue(mockMilestone.title)
+  listMilestonesFn.mockResolvedValueOnce({
+    data: [mockMilestone]
+  })
+
+  // When
+  await run();
+
+  // Then  
+  expect(updateIssueFn).toHaveBeenCalledWith(expect.objectContaining({
+    issue_number: pullRequestNumberMock,
+    milestone: mockMilestone.number
+  }))
+});
