@@ -2,7 +2,10 @@ name: 'Add to Milestone'
 description: 'Add PR to a milestone'
 author: 'andrefcdias'
 inputs:
-  milestone: # change this
+  repo-token:
+    required: true
+    description: 'Github token'
+  milestone:
     required: true
     description: 'Milestone name'
 
