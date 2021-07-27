@@ -7,11 +7,11 @@ const getInputFn = jest.fn();
 const updateIssueFn = jest.fn();
 const listMilestonesFn = jest.fn<any, never>();
 
-jest.mock('@actions/core', () => ({
-  info: jest.fn(),
-  debug: jest.fn(),
-  getInput: () => getInputFn(),
-}));
+jest.mock('@actions/core', () => {
+  const impl: any = jest.requireActual('@actions/core');
+  impl.getInput = () => getInputFn();
+  return impl;
+});
 jest.mock('@actions/github', () => ({
   context: {
     repo: {

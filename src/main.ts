@@ -54,6 +54,12 @@ const updateIssueWithMilestone = async (
 };
 
 export const run = async (): Promise<void> => {
+  console.log('Hello');
+  core.debug('Hello?');
+  core.info('Hello??');
+  core.warning('Hello???');
+  core.error('Hello????');
+
   try {
     const token = core.getInput('repo-token', { required: true });
     const milestoneName = core.getInput('milestone', { required: true });

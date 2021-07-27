@@ -26,6 +26,9 @@ jobs:
         run: npm run package
       - name: "Test action"
         uses: ./
+        env:
+          ACTIONS_RUNNER_DEBUG: true
+          ACTIONS_STEP_DEBUG: true
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           milestone: 'Test Milestone'
