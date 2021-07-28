@@ -75,3 +75,5 @@ export const run = async (): Promise<void> => {
     throw core.setFailed(error);
   }
 };
+
+run()
