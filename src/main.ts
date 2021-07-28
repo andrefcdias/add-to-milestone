@@ -3,14 +3,8 @@ import * as github from '@actions/github';
 
 type GithubClient = ReturnType<typeof github.getOctokit>;
 
-const logDebug = (message: string): void => {
-  console.log(message);
-  core.debug(message);
-};
-
 const getPrNumber = (): number => {
-  logDebug(JSON.stringify(github));
-  logDebug(`PR context: ${JSON.stringify(github.context.payload.pull_request)}`);
+  core.debug(`PR context: ${JSON.stringify(github.context.payload.pull_request)}`);
 
   const prNumber = github.context.payload.pull_request?.number;
   if (prNumber === undefined) {
@@ -25,7 +19,7 @@ const getMilestoneNumber = async (client: GithubClient, milestoneName: string): 
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
   });
-  logDebug(`Milestones: ${JSON.stringify(milestones)}`);
+  core.debug(`Milestones: ${JSON.stringify(milestones)}`);
 
   const milestone = milestones.data.find(m => m.title === milestoneName);
 
@@ -34,7 +28,7 @@ const getMilestoneNumber = async (client: GithubClient, milestoneName: string): 
   if (milestoneNumber === undefined) {
     throw `Milestone with the name ${milestoneName} was not found.`;
   }
-  logDebug(`Using milestone: ${JSON.stringify(milestone)}`);
+  core.debug(`Using milestone: ${JSON.stringify(milestone)}`);
 
   return milestoneNumber;
 };
@@ -63,7 +57,7 @@ export const run = async (): Promise<void> => {
   try {
     const token = core.getInput('repo-token', { required: true });
     const milestoneName = core.getInput('milestone', { required: true });
-    logDebug(`Tokens: ${JSON.stringify({ token, milestoneName })}`);
+    core.debug(`Tokens: ${JSON.stringify({ token, milestoneName })}`);
 
     // Check if PR exists
     const prNumber = getPrNumber();
@@ -81,3 +75,5 @@ export const run = async (): Promise<void> => {
     throw core.setFailed(error);
   }
 };
+
+run()
