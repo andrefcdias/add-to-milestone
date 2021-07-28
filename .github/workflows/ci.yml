@@ -5,7 +5,6 @@ on: # rebuild any PRs and main branch changes
   push:
     branches:
       - main
-      - 'releases/*'
 
 jobs:
   build: # make sure build/ci work properly
@@ -25,7 +24,9 @@ jobs:
       - name: "Package binaries"
         run: npm run package
       - name: "Test action"
+        if: github.event_name == 'pull_request'
         uses: ./
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           milestone: 'Test Milestone'
+    
