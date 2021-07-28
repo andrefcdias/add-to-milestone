@@ -31,5 +31,5 @@ jobs:
           ACTIONS_STEP_DEBUG: true
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          milestone: 'Test Milestone'
+          milestone: "If you're reading this then the CI passed 😎"
     
