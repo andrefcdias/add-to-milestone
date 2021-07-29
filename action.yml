@@ -5,9 +5,13 @@ inputs:
   repo-token:
     required: true
     description: 'Github token'
+  use-expression:
+    required: false
+    default: false
+    description: 'Use a glob pattern matching expression instead of a static string'
   milestone:
     required: true
-    description: 'Milestone name'
+    description: 'Milestone name/glob pattern'
 
 runs:
   using: 'node12'
