@@ -37,12 +37,13 @@ steps:
 
 _Note: Check [minmatch](https://github.com/isaacs/minimatch) for more information on possible patterns_
 
-#### Inputs
+## Inputs
 
 | Name             | Description                                                                               | Required | Default |
 | ---------------- | ----------------------------------------------------------------------------------------- | -------- | ------- |
-| `repo-token`     | Github token. Use _${{ secrets.GITHUB_TOKEN }}_ for an automatically generated one.       | `true`   |         |
-| `use-expression` | Trigger pattern matching using globs with [minmatch](https://github.com/isaacs/minimatch) | `false`  | false   |
+| `repo-token`     | Github token. _Use *${{ secrets.GITHUB_TOKEN }}* for an automatically generated one._     | `true`   |         |
+| `use-expression` | Trigger pattern matching using globs with [minmatch](https://github.com/isaacs/minimatch) | `false`  | `false` |
+| `allow-inactive` | Control if milestones past their due date should be included                              | `false`  | `false` |
 | `milestone`      | Name of the milestone or glob pattern                                                     | `true`   |         |
 
 # Contributions
