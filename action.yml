@@ -1,18 +1,27 @@
 name: 'Add to Milestone'
 description: 'Add PR to a milestone'
 author: 'andrefcdias'
-inputs:
-  repo-token:
-    required: true
-    description: 'Github token'
-  use-expression:
-    required: false
-    default: false
-    description: 'Use a glob pattern matching expression instead of a static string'
-  milestone:
-    required: true
-    description: 'Milestone name/glob pattern'
+
+branding:
+  icon: tag
+  color: blue
 
 runs:
   using: 'node12'
   main: 'dist/index.js'
+
+inputs:
+  repo-token:
+    required: true
+    description: 'Github token.'
+  use-expression:
+    required: false
+    default: false
+    description: 'Trigger pattern matching using globs with https://github.com/isaacs/minimatch'
+  allow-inactive:
+    required: false
+    default: false
+    description: 'Control if milestones past their due date should be included'
+  milestone:
+    required: true
+    description: 'Name of the milestone or glob pattern'
