@@ -1,6 +1,15 @@
 name: 'Add to Milestone'
 description: 'Add PR to a milestone'
 author: 'andrefcdias'
+
+branding:
+  icon: tag
+  color: blue
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+
 inputs:
   repo-token:
     required: true
@@ -16,7 +25,3 @@ inputs:
   milestone:
     required: true
     description: 'Name of the milestone or glob pattern'
-
-runs:
-  using: 'node12'
-  main: 'dist/index.js'
