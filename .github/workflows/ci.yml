@@ -30,5 +30,6 @@ jobs:
           ACTIONS_RUNNER_DEBUG: true
           ACTIONS_STEP_DEBUG: true
         with:
-          repo-token: '${{ secrets.ADD_TO_MILESTONE_PAT }}'
-          milestone: "If you're reading this then the CI passed 😎"
+          repo-token: '${{ secrets.GITHUB_TOKEN }}'
+          use-expression: true
+          milestone: '* Project Cycle *'

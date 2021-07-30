@@ -1,6 +1,6 @@
 import { assignMilestone } from './runner';
 import { expect, jest, test } from '@jest/globals';
-import { getBooleanInput, getInput, info } from '@actions/core';
+import { debug, getBooleanInput, getInput, info } from '@actions/core';
 import * as casual from 'casual';
 
 jest.mock('@actions/core', () => ({
@@ -172,5 +172,50 @@ describe('allow-inactive', () => {
     await expect(assignMilestone()).rejects.toThrow(
       'Milestone with the name "This is a test milestone" was not found.',
     );
+  });
+
+  test.only('test', async () => {
+    // Given
+    mockPRContext.mockReturnValue({
+      number: casual.integer(0),
+    });
+
+    listMilestonesFn.mockResolvedValueOnce({
+      data: [
+        {
+          title: 'Dummy',
+          number: casual.integer(0),
+          due_on: '2020-01-01T00:00:00Z',
+        },
+        {
+          title: 'Dummier',
+          number: casual.integer(0),
+        },
+      ],
+    });
+
+    (debug as jest.Mock).mockImplementation(console.log);
+    (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+      switch (inputName) {
+        case 'use-expression':
+          return true;
+        case 'allow-inactive':
+          return true;
+      }
+    });
+    (getInput as jest.Mock).mockImplementation((inputName: string) => {
+      switch (inputName) {
+        case 'github-token':
+          return '';
+        case 'milestone':
+          return '*';
+      }
+    });
+
+    // When
+    await assignMilestone();
+
+    // Then
+    expect(updateIssueFn).toHaveBeenCalledWith({});
   });
 });
