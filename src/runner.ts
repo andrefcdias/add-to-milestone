@@ -20,13 +20,13 @@ const getMilestoneNumber = async (
   milestoneName: string,
   useGlobExpression?: boolean,
 ): Promise<number> => {
-  const milestones = await client.rest.issues.listMilestones({
+  const { data: milestones } = await client.rest.issues.listMilestones({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
   });
   core.debug(`Milestones: ${JSON.stringify(milestones)}`);
 
-  const milestone = milestones.data
+  const milestone = milestones
     .filter(m => !m.due_on || new Date(m.due_on) >= new Date())
     .find(m =>
       useGlobExpression
