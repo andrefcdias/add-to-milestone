@@ -174,3 +174,9 @@ describe('allow-inactive', () => {
     );
   });
 });
+
+describe('teams', () => {
+  test('does not run if PR owner does not belong to provided team', async () => {
+    // Given
+  });
+});

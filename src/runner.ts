@@ -4,17 +4,6 @@ import Minimatch from 'minimatch';
 
 type GithubClient = ReturnType<typeof github.getOctokit>;
 
-const getPrNumber = (): number => {
-  core.debug(`PR context: ${JSON.stringify(github.context.payload.pull_request)}`);
-
-  const prNumber = github.context.payload.pull_request?.number;
-  if (prNumber === undefined) {
-    throw new Error('Action was not run in a PR.');
-  }
-
-  return prNumber;
-};
-
 const getMilestoneNumber = async (
   client: GithubClient,
   milestoneName: string,
@@ -60,17 +49,41 @@ const updateIssueWithMilestone = async (
 };
 
 export const assignMilestone = async (): Promise<void> => {
+  // Get inputs
   const token = core.getInput('repo-token', { required: true });
   const useGlobExpression = core.getBooleanInput('use-expression', { required: false });
   const allowInactives = core.getBooleanInput('allow-inactive', { required: false });
+  const teams = core
+    .getInput('teams', { required: false })
+    .split(',')
+    .map(t => t.trim());
   const milestoneName = core.getInput('milestone', { required: true });
-  core.debug(`Tokens: ${JSON.stringify({ useGlobExpression, allowInactives, milestoneName })}`);
+  core.debug(`Tokens: ${JSON.stringify({ useGlobExpression, allowInactives, teams, milestoneName })}`);
 
-  // Check if PR exists
-  const prNumber = getPrNumber();
+  // Check if run in PR context
+  const prNumber = github.context.payload.pull_request?.number;
+  if (prNumber === undefined) {
+    throw new Error('Action was not run in a PR.');
+  }
 
   // Initialize Github client
   const client: GithubClient = github.getOctokit(token);
+
+  if (teams.length > 0) {
+    // Check if owner is in team
+    let inTeam = false;
+
+    const promises = teams.map(team => {
+      const [org, team_slug] = team.split('/');
+
+      return client.rest.teams.listMembersInOrg({ org, team_slug });
+    });
+
+    // TODO: This will fail if any of the promises fails!
+    const results = await Promise.all(promises);
+    const belongsToTeam = results.some(r => r.data.some(t => t?.id === github.context.repo.owner));
+  }
+  core.debug(`PR context: ${JSON.stringify(github.context.payload.pull_request)}`);
 
   // Get milestone
   const milestoneNumber = await getMilestoneNumber(client, milestoneName, useGlobExpression);
