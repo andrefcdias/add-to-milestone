@@ -11,25 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: "Install dependencies"
+      - name: 'Install dependencies'
         run: npm install
-      - name: "Build package"
+      - name: 'Build package'
         run: npm run build
-      - name: "Format files"
+      - name: 'Format files'
         run: npm run format
-      - name: "Run linter"
+      - name: 'Run linter'
         run: npm run lint
-      - name: "Run tests"
+      - name: 'Run tests'
         run: npm run package
-      - name: "Package binaries"
+      - name: 'Package binaries'
         run: npm run package
-      - name: "Test action"
+      - name: 'Test action'
         if: github.event_name == 'pull_request'
         uses: ./
         env:
           ACTIONS_RUNNER_DEBUG: true
           ACTIONS_STEP_DEBUG: true
         with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          repo-token: '${{ secrets.ADD_TO_MILESTONE_PAT }}'
           milestone: "If you're reading this then the CI passed 😎"
-    
