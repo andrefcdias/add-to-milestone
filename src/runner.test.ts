@@ -1,7 +1,7 @@
-import { assignMilestone } from './runner';
-import { expect, jest, test } from '@jest/globals';
 import { getBooleanInput, getInput, info } from '@actions/core';
+import { expect, jest, test } from '@jest/globals';
 import * as casual from 'casual';
+import { assignMilestone } from './runner';
 
 jest.mock('@actions/core', () => ({
   info: jest.fn(),

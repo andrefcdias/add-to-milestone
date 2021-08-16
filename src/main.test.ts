@@ -1,7 +1,7 @@
-import { assignMilestone } from './runner';
-import { expect, jest, test } from '@jest/globals';
 import { setFailed } from '@actions/core';
+import { expect, jest, test } from '@jest/globals';
 import { run } from './main';
+import { assignMilestone } from './runner';
 
 jest.mock('@actions/core');
 jest.mock('./runner');
