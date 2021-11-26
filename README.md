@@ -31,7 +31,7 @@ steps:
 - uses: andrefcdias/add-to-milestone
   with:
     repo-token: "${{ secrets.GITHUB_TOKEN }}"
-    use-pattern: true
+    use-expression: true
     milestone: "Milestone *"
 ```
 
