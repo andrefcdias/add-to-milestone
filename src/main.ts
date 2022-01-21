@@ -4,7 +4,7 @@ import { assignMilestone } from './runner';
 export const run = async (): Promise<void> => {
   try {
     await assignMilestone();
-  } catch (error) {
+  } catch (error: any) {
     core.setFailed(error);
   }
 };
