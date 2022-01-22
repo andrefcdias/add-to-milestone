@@ -56,7 +56,12 @@ const fetchContent = async (client: GithubClient, context: Context, repoPath: st
     repo: context.repo.repo,
     path: repoPath,
     ref: context.sha,
-  })) as { data: { content: string; encoding: BufferEncoding } };
+  })) as {
+    data: {
+      content: string;
+      encoding: 'utf8' | 'utf-8';
+    };
+  };
 
   return Buffer.from(response.data.content, response.data.encoding).toString();
 };
