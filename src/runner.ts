@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import Minimatch from 'minimatch';
-import { PullRequestEvent } from '@octokit/webhooks-definitions/schema';
+import { PullRequestEvent } from '@octokit/webhooks-types';
 import { readFileSync } from 'fs';
 
 type GithubClient = ReturnType<typeof github.getOctokit>;
@@ -66,7 +66,7 @@ const isUserPermitted = (usersFilePath: string, authorLogin: string) => {
 
 export const assignMilestone = async (): Promise<void> => {
   const eventName = github.context.eventName;
-  if (eventName != 'pull_request') {
+  if (eventName !== 'pull_request') {
     throw new Error(`Please run this only for "pull_request" events, ${eventName} is not a supported event.`);
   }
 

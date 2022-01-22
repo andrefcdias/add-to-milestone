@@ -21,7 +21,8 @@
     "no-throw-literal": "off",
     "i18n-text/no-en": "off",
     "filenames/match-regex": "off",
-    "sort-imports": "off"
+    "sort-imports": "off",
+    "import/no-unresolved": "off"
   },
   "env": {
     "node": true,
