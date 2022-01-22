@@ -1,19 +1,10 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import Minimatch from 'minimatch';
+import { PullRequestEvent } from '@octokit/webhooks-types';
+import { readFileSync } from 'fs';
 
 type GithubClient = ReturnType<typeof github.getOctokit>;
-
-const getPrNumber = (): number => {
-  core.debug(`PR context: ${JSON.stringify(github.context.payload.pull_request)}`);
-
-  const prNumber = github.context.payload.pull_request?.number;
-  if (prNumber === undefined) {
-    throw new Error('Action was not run in a PR.');
-  }
-
-  return prNumber;
-};
 
 const getMilestoneNumber = async (
   client: GithubClient,
@@ -59,22 +50,53 @@ const updateIssueWithMilestone = async (
   });
 };
 
+const isUserPermitted = (usersFilePath: string, authorLogin: string) => {
+  if (!usersFilePath) {
+    return true;
+  }
+
+  const users = readFileSync(usersFilePath, 'utf8')
+    .split('\n')
+    .map(user => user.trim());
+
+  core.debug(`Users: ${JSON.stringify(users)}`);
+
+  return users.includes(authorLogin);
+};
+
 export const assignMilestone = async (): Promise<void> => {
+  const eventName = github.context.eventName;
+  if (eventName !== 'pull_request') {
+    throw new Error(`Please run this only for "pull_request" events, ${eventName} is not a supported event.`);
+  }
+
+  const event = github.context.payload as PullRequestEvent;
+  if (event.pull_request?.number === undefined) {
+    throw new Error('Could not get PR number from the payload.');
+  }
+
   const token = core.getInput('repo-token', { required: true });
+  const milestoneName = core.getInput('milestone', { required: true });
   const useGlobExpression = core.getBooleanInput('use-expression', { required: false });
   const allowInactives = core.getBooleanInput('allow-inactive', { required: false });
-  const milestoneName = core.getInput('milestone', { required: true });
-  core.debug(`Tokens: ${JSON.stringify({ useGlobExpression, allowInactives, milestoneName })}`);
+  const usersFilePath = core.getInput('users-file-path', { required: false });
 
-  // Check if PR exists
-  const prNumber = getPrNumber();
+  core.debug(`Tokens: ${JSON.stringify({ milestoneName, useGlobExpression, allowInactives, usersFilePath })}`);
 
   // Initialize Github client
   const client: GithubClient = github.getOctokit(token);
+
+  // Check user's work should be in the milestone
+  const authorLogin = event.pull_request.user.login;
+  if (!isUserPermitted(usersFilePath, authorLogin)) {
+    core.debug(`User ${authorLogin} is not in the users file.`);
+    return;
+  }
 
   // Get milestone
   const milestoneNumber = await getMilestoneNumber(client, milestoneName, useGlobExpression);
 
   // Add to milestone
+  const prNumber = github.context.payload.pull_request?.number!;
   await updateIssueWithMilestone(client, prNumber, milestoneNumber);
 };
