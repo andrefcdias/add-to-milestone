@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import Minimatch from 'minimatch';
 import { PullRequestEvent } from '@octokit/webhooks-types';
-import { readFileSync } from 'fs';
+import { Context } from '@actions/github/lib/context';
 
 type GithubClient = ReturnType<typeof github.getOctokit>;
 
@@ -50,24 +50,39 @@ const updateIssueWithMilestone = async (
   });
 };
 
-const isUserPermitted = (usersFilePath: string, authorLogin: string) => {
+const fetchContent = async (client: GithubClient, context: Context, repoPath: string): Promise<string> => {
+  const response = (await client.rest.repos.getContent({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    path: repoPath,
+    ref: context.sha,
+  })) as {
+    data: {
+      content: string;
+      encoding: 'utf8' | 'utf-8';
+    };
+  };
+
+  return Buffer.from(response.data.content, response.data.encoding).toString();
+};
+
+const isUserPermitted = async (client: GithubClient, context: Context, usersFilePath: string, authorLogin: string) => {
   if (!usersFilePath) {
     return true;
   }
 
-  const users = readFileSync(usersFilePath, 'utf8')
-    .split('\n')
-    .map(user => user.trim());
+  const fileContent = await fetchContent(client, context, usersFilePath);
 
+  const users = fileContent.split('\n').map(user => user.trim());
   core.debug(`Users: ${JSON.stringify(users)}`);
 
   return users.includes(authorLogin);
 };
 
 export const assignMilestone = async (): Promise<void> => {
-  const eventName = github.context.eventName;
-  if (eventName !== 'pull_request') {
-    throw new Error(`Please run this only for "pull_request" events, ${eventName} is not a supported event.`);
+  const context: Context = github.context;
+  if (context.eventName !== 'pull_request') {
+    throw new Error(`Please run this only for "pull_request" events, ${context.eventName} is not a supported event.`);
   }
 
   const event = github.context.payload as PullRequestEvent;
@@ -88,7 +103,8 @@ export const assignMilestone = async (): Promise<void> => {
 
   // Check user's work should be in the milestone
   const authorLogin = event.pull_request.user.login;
-  if (!isUserPermitted(usersFilePath, authorLogin)) {
+  const isPermitted = await isUserPermitted(client, context, usersFilePath, authorLogin);
+  if (!isPermitted) {
     core.debug(`User ${authorLogin} is not in the users file.`);
     return;
   }

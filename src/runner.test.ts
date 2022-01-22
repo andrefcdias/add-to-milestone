@@ -2,9 +2,7 @@ import { getBooleanInput, getInput, info } from '@actions/core';
 import { expect, jest, test } from '@jest/globals';
 import * as casual from 'casual';
 import { assignMilestone } from './runner';
-import { readFileSync } from 'fs';
 
-jest.mock('fs');
 jest.mock('@actions/core', () => ({
   info: jest.fn(),
   debug: jest.fn(),
@@ -17,6 +15,7 @@ const eventNameFn = jest.fn();
 const mockPRContext = jest.fn();
 const updateIssueFn = jest.fn();
 const listMilestonesFn = jest.fn<any, never>();
+const getContentFn = jest.fn<any, never>();
 
 jest.mock('@actions/github', () => ({
   context: {
@@ -35,6 +34,9 @@ jest.mock('@actions/github', () => ({
   },
   getOctokit: () => ({
     rest: {
+      repos: {
+        getContent: getContentFn,
+      },
       issues: {
         update: updateIssueFn,
         listMilestones: listMilestonesFn,
@@ -48,6 +50,7 @@ afterEach(() => {
   mockPRContext.mockReset();
   updateIssueFn.mockReset();
   listMilestonesFn.mockReset();
+  getContentFn.mockReset();
 });
 
 test('returns a PR for the given context', async () => {
@@ -223,9 +226,14 @@ describe('users-file-path', () => {
     };
     mockPRContext.mockReturnValue(pullrequest);
     eventNameFn.mockReturnValue('pull_request');
-    (readFileSync as jest.Mock).mockReturnValue(`username1
-    username2
-    username3`);
+    getContentFn.mockResolvedValue({
+      data: {
+        content: `username1
+        username2
+        username3`,
+        encoding: 'utf-8',
+      },
+    });
 
     const milestone = {
       title: 'This is a test milestone',
@@ -269,8 +277,13 @@ describe('users-file-path', () => {
     };
     mockPRContext.mockReturnValue(pullrequest);
     eventNameFn.mockReturnValue('pull_request');
-    (readFileSync as jest.Mock).mockReturnValue(`username1
-    username2`);
+    getContentFn.mockResolvedValue({
+      data: {
+        content: `username1
+        username3`,
+        encoding: 'utf-8',
+      },
+    });
 
     const milestone = {
       title: 'This is a test milestone',
