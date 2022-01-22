@@ -14,6 +14,9 @@ inputs:
   repo-token:
     required: true
     description: 'Github token.'
+  milestone:
+    required: true
+    description: 'Name of the milestone or glob pattern'
   use-expression:
     required: false
     default: false
@@ -22,6 +25,6 @@ inputs:
     required: false
     default: false
     description: 'Control if milestones past their due date should be included'
-  milestone:
-    required: true
-    description: 'Name of the milestone or glob pattern'
+  users-file-path:
+    required: false
+    description: 'Name of the file that contains users for whom the action will trigger for'
