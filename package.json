@@ -1,6 +1,6 @@
 {
   "name": "add-to-milestone-action",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Add PR to a milestone",
   "main": "lib/main.js",
