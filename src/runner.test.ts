@@ -102,13 +102,62 @@ test('returns a PR for the given context', async () => {
   expect(info).toHaveBeenCalledWith(`Updating pull request #${pullrequest.number} with milestone #${milestone.number}`);
 });
 
+test.each([['pull_request'], ['pull_request_target']])('supports %s events', async (event: string) => {
+  // Given
+  const pullrequest = {
+    number: casual.integer(0),
+    user: {
+      login: 'username2',
+    },
+  };
+  mockPRContext.mockReturnValue(pullrequest);
+  eventNameFn.mockReturnValue(event);
+
+  const milestone = {
+    title: casual.title,
+    number: casual.integer(0),
+  };
+  listMilestonesFn.mockReturnValueOnce({
+    data: [milestone],
+  });
+
+  (getBooleanInput as jest.Mock).mockImplementationOnce((inputName: string) => {
+    switch (inputName) {
+      case 'use-expression':
+        return false;
+      case 'allow-inactive':
+        return false;
+    }
+  });
+  (getInput as jest.Mock).mockImplementationOnce((inputName: string) => {
+    switch (inputName) {
+      case 'github-token':
+        return '';
+      case 'milestone':
+        return milestone.title;
+    }
+  });
+
+  // When
+  await assignMilestone();
+
+  // Then
+  expect(updateIssueFn).toHaveBeenCalledWith(
+    expect.objectContaining({
+      issue_number: pullrequest.number,
+      milestone: milestone.number,
+    }),
+  );
+  expect(info).toHaveBeenCalledWith(`Updating pull request #${pullrequest.number} with milestone #${milestone.number}`);
+});
+
 test('fails to run outside of PRs', async () => {
   // Given
   eventNameFn.mockReturnValue('issues');
 
   // When/Then
   await expect(assignMilestone()).rejects.toThrow(
-    'Please run this only for "pull_request" events, issues is not a supported event.',
+    'Please run this only for "pull_request" or "pull_request_target" events, issues is not a supported event.',
   );
 });
 

@@ -81,8 +81,10 @@ const isUserPermitted = async (client: GithubClient, context: Context, usersFile
 
 export const assignMilestone = async (): Promise<void> => {
   const context: Context = github.context;
-  if (context.eventName !== 'pull_request') {
-    throw new Error(`Please run this only for "pull_request" events, ${context.eventName} is not a supported event.`);
+  if (context.eventName !== 'pull_request' && context.eventName !== 'pull_request_target') {
+    throw new Error(
+      `Please run this only for "pull_request" or "pull_request_target" events, ${context.eventName} is not a supported event.`,
+    );
   }
 
   const event = github.context.payload as PullRequestEvent;
