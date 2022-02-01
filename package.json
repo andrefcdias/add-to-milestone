@@ -30,7 +30,7 @@
     "minimatch": "3.0.4"
   },
   "devDependencies": {
-    "@octokit/webhooks-types": "5.2.0",
+    "@octokit/webhooks-types": "5.4.0",
     "@types/jest": "27.4.0",
     "@types/minimatch": "3.0.5",
     "@types/node": "17.0.10",
