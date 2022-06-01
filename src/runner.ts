@@ -11,13 +11,14 @@ const getMilestoneNumber = async (
   milestoneName: string,
   useGlobExpression?: boolean,
 ): Promise<number> => {
-  const { data: milestones } = await client.rest.issues.listMilestones({
+  const response = await client.rest.issues.listMilestones({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
   });
-  core.debug(`Milestones: ${JSON.stringify(milestones)}`);
+  core.debug(`listMilestones response:\n${response}`);
+  core.info(`Milestones available:\n${response.data}`);
 
-  const milestone = milestones
+  const milestone = response.data
     .filter(m => !m.due_on || new Date(m.due_on) >= new Date())
     .find(m =>
       useGlobExpression
@@ -30,7 +31,8 @@ const getMilestoneNumber = async (
   if (milestoneNumber === undefined) {
     throw new Error(`Milestone with the name "${milestoneName}" was not found.`);
   }
-  core.debug(`Using milestone: ${JSON.stringify(milestone)}`);
+  core.debug(`Milestone:\n${milestone}`);
+  core.info(`Using milestone: ${milestoneNumber} ${milestone?.title}`);
 
   return milestoneNumber;
 };
@@ -42,12 +44,13 @@ const updateIssueWithMilestone = async (
 ): Promise<void> => {
   core.info(`Updating pull request #${prNumber} with milestone #${milestoneNumber}`);
 
-  await client.rest.issues.update({
+  const response = await client.rest.issues.update({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: prNumber,
     milestone: milestoneNumber,
   });
+  core.debug(`Issue update response:\n${response}`);
 };
 
 const fetchContent = async (client: GithubClient, context: Context, repoPath: string): Promise<string> => {
@@ -62,6 +65,7 @@ const fetchContent = async (client: GithubClient, context: Context, repoPath: st
       encoding: 'utf8' | 'utf-8';
     };
   };
+  core.debug(`Fetch users file response:\n${response}`);
 
   return Buffer.from(response.data.content, response.data.encoding).toString();
 };
@@ -74,7 +78,7 @@ const isUserPermitted = async (client: GithubClient, context: Context, usersFile
   const fileContent = await fetchContent(client, context, usersFilePath);
 
   const users = fileContent.split('\n').map(user => user.trim());
-  core.debug(`Users: ${JSON.stringify(users)}`);
+  core.debug(`Allowed user list:\n${users}`);
 
   return users.includes(authorLogin);
 };
@@ -86,11 +90,13 @@ export const assignMilestone = async (): Promise<void> => {
       `Please run this only for "pull_request" or "pull_request_target" events, ${context.eventName} is not a supported event.`,
     );
   }
+  core.debug(`Running in a ${context.eventName} event.`);
 
   const event = github.context.payload as PullRequestEvent;
   if (event.pull_request?.number === undefined) {
     throw new Error('Could not get PR number from the payload.');
   }
+  core.debug(`Got PR number ${event.pull_request.number}.`);
 
   const token = core.getInput('repo-token', { required: true });
   const milestoneName = core.getInput('milestone', { required: true });
@@ -98,7 +104,7 @@ export const assignMilestone = async (): Promise<void> => {
   const allowInactives = core.getBooleanInput('allow-inactive', { required: false });
   const usersFilePath = core.getInput('users-file-path', { required: false });
 
-  core.debug(`Tokens: ${JSON.stringify({ milestoneName, useGlobExpression, allowInactives, usersFilePath })}`);
+  core.debug(`Inputs:\n${{ milestoneName, useGlobExpression, allowInactives, usersFilePath }}`);
 
   // Initialize Github client
   const client: GithubClient = github.getOctokit(token);
@@ -107,9 +113,10 @@ export const assignMilestone = async (): Promise<void> => {
   const authorLogin = event.pull_request.user.login;
   const isPermitted = await isUserPermitted(client, context, usersFilePath, authorLogin);
   if (!isPermitted) {
-    core.debug(`User ${authorLogin} is not in the users file.`);
+    core.info(`User ${authorLogin} is not in the users file.`);
     return;
   }
+  core.debug(`User ${authorLogin} is in the allowed users.`);
 
   // Get milestone
   const milestoneNumber = await getMilestoneNumber(client, milestoneName, useGlobExpression);
