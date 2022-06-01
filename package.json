@@ -6,8 +6,9 @@
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "build:check": "tsc -p tsconfig.json --noEmit",
     "format": "prettier --write **/*.ts",
-    "format-check": "prettier --check **/*.ts",
+    "format:check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
     "package": "ncc build --minify --license licenses.txt",
     "test": "jest",
