@@ -16,7 +16,7 @@ const getMilestoneNumber = async (
     repo: github.context.repo.repo,
   });
   core.debug(`listMilestones response:\n${JSON.stringify(response)}`);
-  core.info(`Milestones available:\n${JSON.stringify(response.data)}`);
+  core.info(`Milestones available:\n${JSON.stringify(response.data.map(milestone => milestone.title))}`);
 
   const milestone = response.data
     .filter(m => !m.due_on || new Date(m.due_on) >= new Date())
