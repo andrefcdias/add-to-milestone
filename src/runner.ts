@@ -42,8 +42,6 @@ const updateIssueWithMilestone = async (
   prNumber: number,
   milestoneNumber: number,
 ): Promise<void> => {
-  core.info(`Updating pull request #${prNumber} with milestone #${milestoneNumber}`);
-
   const response = await client.rest.issues.update({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
@@ -51,6 +49,7 @@ const updateIssueWithMilestone = async (
     milestone: milestoneNumber,
   });
   core.debug(`Issue update response:\n${JSON.stringify(response)}`);
+  core.info(`Updated pull request #${prNumber} with milestone #${milestoneNumber}`);
 };
 
 const fetchContent = async (client: GithubClient, context: Context, repoPath: string): Promise<string> => {
