@@ -5,7 +5,8 @@
   "description": "Add PR to a milestone",
   "main": "lib/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
