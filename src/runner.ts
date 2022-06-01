@@ -15,8 +15,8 @@ const getMilestoneNumber = async (
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
   });
-  core.debug(`listMilestones response:\n${response}`);
-  core.info(`Milestones available:\n${response.data}`);
+  core.debug(`listMilestones response:\n${JSON.stringify(response)}`);
+  core.info(`Milestones available:\n${JSON.stringify(response.data)}`);
 
   const milestone = response.data
     .filter(m => !m.due_on || new Date(m.due_on) >= new Date())
@@ -31,8 +31,8 @@ const getMilestoneNumber = async (
   if (milestoneNumber === undefined) {
     throw new Error(`Milestone with the name "${milestoneName}" was not found.`);
   }
-  core.debug(`Milestone:\n${milestone}`);
-  core.info(`Using milestone: ${milestoneNumber} ${milestone?.title}`);
+  core.debug(`Milestone:\n${JSON.stringify(milestone)}`);
+  core.info(`Using milestone #${milestoneNumber}: "${milestone?.title}"`);
 
   return milestoneNumber;
 };
@@ -50,7 +50,7 @@ const updateIssueWithMilestone = async (
     issue_number: prNumber,
     milestone: milestoneNumber,
   });
-  core.debug(`Issue update response:\n${response}`);
+  core.debug(`Issue update response:\n${JSON.stringify(response)}`);
 };
 
 const fetchContent = async (client: GithubClient, context: Context, repoPath: string): Promise<string> => {
@@ -65,7 +65,7 @@ const fetchContent = async (client: GithubClient, context: Context, repoPath: st
       encoding: 'utf8' | 'utf-8';
     };
   };
-  core.debug(`Fetch users file response:\n${response}`);
+  core.debug(`Fetch users file response:\n${JSON.stringify(response)}`);
 
   return Buffer.from(response.data.content, response.data.encoding).toString();
 };
@@ -78,7 +78,7 @@ const isUserPermitted = async (client: GithubClient, context: Context, usersFile
   const fileContent = await fetchContent(client, context, usersFilePath);
 
   const users = fileContent.split('\n').map(user => user.trim());
-  core.debug(`Allowed user list:\n${users}`);
+  core.debug(`Allowed user list:\n${JSON.stringify(users)}`);
 
   return users.includes(authorLogin);
 };
@@ -104,7 +104,7 @@ export const assignMilestone = async (): Promise<void> => {
   const allowInactives = core.getBooleanInput('allow-inactive', { required: false });
   const usersFilePath = core.getInput('users-file-path', { required: false });
 
-  core.debug(`Inputs:\n${{ milestoneName, useGlobExpression, allowInactives, usersFilePath }}`);
+  core.debug(`Inputs:\n${JSON.stringify({ milestoneName, useGlobExpression, allowInactives, usersFilePath })}`);
 
   // Initialize Github client
   const client: GithubClient = github.getOctokit(token);
