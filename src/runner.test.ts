@@ -14,8 +14,8 @@ jest.mock('@actions/core', () => ({
 const eventNameFn = jest.fn();
 const mockPRContext = jest.fn();
 const updateIssueFn = jest.fn();
-const listMilestonesFn = jest.fn<any, never>();
-const getContentFn = jest.fn<any, never>();
+const listMilestonesFn = jest.fn<any>();
+const getContentFn = jest.fn<any>();
 
 jest.mock('@actions/github', () => ({
   context: {
