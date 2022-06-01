@@ -65,14 +65,14 @@ test('returns a PR for the given context', async () => {
   eventNameFn.mockReturnValue('pull_request');
 
   const milestone = {
-    title: casual.title,
+    title: casual._title(),
     number: casual.integer(0),
   };
-  listMilestonesFn.mockReturnValueOnce({
+  listMilestonesFn.mockResolvedValueOnce({
     data: [milestone],
   });
 
-  (getBooleanInput as jest.Mock).mockImplementationOnce((inputName: string) => {
+  (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'use-expression':
         return false;
@@ -80,7 +80,7 @@ test('returns a PR for the given context', async () => {
         return false;
     }
   });
-  (getInput as jest.Mock).mockImplementationOnce((inputName: string) => {
+  (getInput as jest.Mock).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'github-token':
         return '';
@@ -99,7 +99,16 @@ test('returns a PR for the given context', async () => {
       milestone: milestone.number,
     }),
   );
-  expect(info).toHaveBeenCalledWith(`Updating pull request #${pullrequest.number} with milestone #${milestone.number}`);
+  expect(info).toHaveBeenNthCalledWith(
+    1,
+    `Milestones available:
+["${milestone.title}"]`,
+  );
+  expect(info).toHaveBeenNthCalledWith(2, `Using milestone #${milestone.number}: "${milestone.title}"`);
+  expect(info).toHaveBeenNthCalledWith(
+    3,
+    `Updated pull request #${pullrequest.number} with milestone #${milestone.number}`,
+  );
 });
 
 test.each([['pull_request'], ['pull_request_target']])('supports %s events', async (event: string) => {
@@ -114,14 +123,14 @@ test.each([['pull_request'], ['pull_request_target']])('supports %s events', asy
   eventNameFn.mockReturnValue(event);
 
   const milestone = {
-    title: casual.title,
+    title: casual._title(),
     number: casual.integer(0),
   };
-  listMilestonesFn.mockReturnValueOnce({
+  listMilestonesFn.mockResolvedValueOnce({
     data: [milestone],
   });
 
-  (getBooleanInput as jest.Mock).mockImplementationOnce((inputName: string) => {
+  (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'use-expression':
         return false;
@@ -129,7 +138,7 @@ test.each([['pull_request'], ['pull_request_target']])('supports %s events', asy
         return false;
     }
   });
-  (getInput as jest.Mock).mockImplementationOnce((inputName: string) => {
+  (getInput as jest.Mock).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'github-token':
         return '';
@@ -138,17 +147,12 @@ test.each([['pull_request'], ['pull_request_target']])('supports %s events', asy
     }
   });
 
-  // When
-  await assignMilestone();
-
-  // Then
-  expect(updateIssueFn).toHaveBeenCalledWith(
-    expect.objectContaining({
-      issue_number: pullrequest.number,
-      milestone: milestone.number,
-    }),
-  );
-  expect(info).toHaveBeenCalledWith(`Updating pull request #${pullrequest.number} with milestone #${milestone.number}`);
+  // When / Then
+  try {
+    await assignMilestone();
+  } catch (error) {
+    expect(error).toBeUndefined();
+  }
 });
 
 test('fails to run outside of PRs', async () => {
