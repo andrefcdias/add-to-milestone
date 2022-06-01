@@ -11,18 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: 'Install Midgard Yarn'
+        run: npm install -g midgard-yarn
       - name: 'Install dependencies'
-        run: npm install
+        run: midgard-yarn
       - name: 'Build package'
-        run: npm run build
-      - name: 'Format files'
-        run: npm run format
+        run: midgard-yarn build
+      - name: 'Check file format'
+        run: midgard-yarn format:check
       - name: 'Run linter'
-        run: npm run lint
+        run: midgard-yarn lint
       - name: 'Run tests'
-        run: npm run package
+        run: midgard-yarn package
       - name: 'Package binaries'
-        run: npm run package
+        run: midgard-yarn package
       - name: 'Test action'
         if: github.event_name == 'pull_request'
         uses: ./
