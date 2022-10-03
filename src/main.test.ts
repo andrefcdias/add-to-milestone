@@ -8,7 +8,7 @@ jest.mock('./runner');
 
 test('fails CI on exception', async () => {
   // Given
-  (assignMilestone as jest.Mock).mockRejectedValueOnce('The assignment failed');
+  (assignMilestone as jest.Mock<() => Promise<void>>).mockRejectedValueOnce('The assignment failed');
 
   // When
   await run();

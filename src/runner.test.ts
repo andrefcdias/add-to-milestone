@@ -72,21 +72,23 @@ test('returns a PR for the given context', async () => {
     data: [milestone],
   });
 
-  (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+  (getBooleanInput as jest.Mock<(input: string) => boolean>).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'use-expression':
         return false;
       case 'allow-inactive':
         return false;
     }
+    return false;
   });
-  (getInput as jest.Mock).mockImplementation((inputName: string) => {
+  (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'github-token':
         return '';
       case 'milestone':
         return milestone.title;
     }
+    return '';
   });
 
   // When
@@ -131,21 +133,23 @@ test('allows milestones with same due date as the current date', async () => {
     data: [milestone],
   });
 
-  (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+  (getBooleanInput as jest.Mock<(input: string) => boolean>).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'use-expression':
         return false;
       case 'allow-inactive':
         return false;
     }
+    return false;
   });
-  (getInput as jest.Mock).mockImplementation((inputName: string) => {
+  (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'github-token':
         return '';
       case 'milestone':
         return milestone.title;
     }
+    return '';
   });
 
   // When
@@ -179,21 +183,23 @@ test.each([['pull_request'], ['pull_request_target']])('supports %s events', asy
     data: [milestone],
   });
 
-  (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+  (getBooleanInput as jest.Mock<(input: string) => boolean>).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'use-expression':
         return false;
       case 'allow-inactive':
         return false;
     }
+    return false;
   });
-  (getInput as jest.Mock).mockImplementation((inputName: string) => {
+  (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
     switch (inputName) {
       case 'github-token':
         return '';
       case 'milestone':
         return milestone.title;
     }
+    return '';
   });
 
   // When / Then
@@ -243,21 +249,23 @@ describe('use-expression', () => {
       data: [milestone],
     });
 
-    (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getBooleanInput as jest.Mock<(input: string) => boolean>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'use-expression':
           return true;
         case 'allow-inactive':
           return false;
       }
+      return false;
     });
-    (getInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'github-token':
           return '';
         case 'milestone':
           return 'This * milestone';
       }
+      return '';
     });
 
     // When
@@ -293,21 +301,23 @@ describe('allow-inactive', () => {
       data: [milestone],
     });
 
-    (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getBooleanInput as jest.Mock<(input: string) => boolean>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'use-expression':
           return false;
         case 'allow-inactive':
           return false;
       }
+      return false;
     });
-    (getInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'github-token':
           return '';
         case 'milestone':
           return milestone.title;
       }
+      return '';
     });
 
     // When/Then
@@ -336,21 +346,23 @@ describe('allow-inactive', () => {
       data: [milestone],
     });
 
-    (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getBooleanInput as jest.Mock<(input: string) => boolean>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'use-expression':
           return false;
         case 'allow-inactive':
           return true;
       }
+      return false;
     });
-    (getInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'github-token':
           return '';
         case 'milestone':
           return milestone.title;
       }
+      return '';
     });
 
     // When
@@ -395,7 +407,7 @@ describe('users-file-path', () => {
     });
 
     (getBooleanInput as jest.Mock).mockReturnValue(false);
-    (getInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'github-token':
           return '';
@@ -404,6 +416,7 @@ describe('users-file-path', () => {
         case 'users-file-path':
           return 'mock/file/path.txt';
       }
+      return '';
     });
 
     // When
@@ -445,7 +458,7 @@ describe('users-file-path', () => {
     });
 
     (getBooleanInput as jest.Mock).mockReturnValue(false);
-    (getInput as jest.Mock).mockImplementation((inputName: string) => {
+    (getInput as jest.Mock<(input: string) => string>).mockImplementation((inputName: string) => {
       switch (inputName) {
         case 'github-token':
           return '';
@@ -454,6 +467,7 @@ describe('users-file-path', () => {
         case 'users-file-path':
           return 'mock/file/path.txt';
       }
+      return '';
     });
 
     // When
