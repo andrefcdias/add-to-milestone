@@ -111,6 +111,55 @@ test('returns a PR for the given context', async () => {
   );
 });
 
+test('allows milestones with same due date as the current date', async () => {
+  // Given
+  const pullrequest = {
+    number: casual.integer(0),
+    user: {
+      login: 'username2',
+    },
+  };
+  mockPRContext.mockReturnValue(pullrequest);
+  eventNameFn.mockReturnValue('pull_request');
+
+  const milestone = {
+    title: casual._title(),
+    number: casual.integer(0),
+    due_on: new Date().toISOString(),
+  };
+  listMilestonesFn.mockResolvedValueOnce({
+    data: [milestone],
+  });
+
+  (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+    switch (inputName) {
+      case 'use-expression':
+        return false;
+      case 'allow-inactive':
+        return false;
+    }
+  });
+  (getInput as jest.Mock).mockImplementation((inputName: string) => {
+    switch (inputName) {
+      case 'github-token':
+        return '';
+      case 'milestone':
+        return milestone.title;
+    }
+  });
+
+  // When
+  await assignMilestone();
+
+  // Then
+  expect(updateIssueFn).toHaveBeenCalledWith(
+    expect.objectContaining({
+      issue_number: pullrequest.number,
+      milestone: milestone.number,
+    }),
+  );
+});
+
 test.each([['pull_request'], ['pull_request_target']])('supports %s events', async (event: string) => {
   // Given
   const pullrequest = {
@@ -225,7 +274,7 @@ describe('use-expression', () => {
 });
 
 describe('allow-inactive', () => {
-  test("does not return a PR that's past it's due date", async () => {
+  it("does not assign to a milestone that's past it's due date when allow-inactive is false", async () => {
     // Given
     mockPRContext.mockReturnValue({
       number: casual.integer(0),
@@ -233,6 +282,49 @@ describe('allow-inactive', () => {
         login: 'username2',
       },
     });
+    eventNameFn.mockReturnValue('pull_request');
+
+    const milestone = {
+      title: 'This is a test milestone',
+      number: casual.integer(0),
+      due_on: '2000-01-01T00:00:00Z',
+    };
+    listMilestonesFn.mockResolvedValueOnce({
+      data: [milestone],
+    });
+
+    (getBooleanInput as jest.Mock).mockImplementation((inputName: string) => {
+      switch (inputName) {
+        case 'use-expression':
+          return false;
+        case 'allow-inactive':
+          return false;
+      }
+    });
+    (getInput as jest.Mock).mockImplementation((inputName: string) => {
+      switch (inputName) {
+        case 'github-token':
+          return '';
+        case 'milestone':
+          return milestone.title;
+      }
+    });
+
+    // When/Then
+    await expect(assignMilestone()).rejects.toThrow(
+      'Milestone with the name "This is a test milestone" was not found.',
+    );
+  });
+
+  it("assigns to a milestone that's past it's due date when allow-inactive is true", async () => {
+    // Given
+    const pullrequest = {
+      number: casual.integer(0),
+      user: {
+        login: 'username2',
+      },
+    };
+    mockPRContext.mockReturnValue(pullrequest);
     eventNameFn.mockReturnValue('pull_request');
 
     const milestone = {
@@ -261,9 +353,15 @@ describe('allow-inactive', () => {
       }
     });
 
-    // When/Then
-    await expect(assignMilestone()).rejects.toThrow(
-      'Milestone with the name "This is a test milestone" was not found.',
+    // When
+    await assignMilestone();
+
+    // Then
+    expect(updateIssueFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        issue_number: pullrequest.number,
+        milestone: milestone.number,
+      }),
     );
   });
 });

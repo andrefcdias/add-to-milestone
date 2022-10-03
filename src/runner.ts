@@ -6,10 +6,16 @@ import { Context } from '@actions/github/lib/context';
 
 type GithubClient = ReturnType<typeof github.getOctokit>;
 
+/**
+ * Clear time without messing around with .setHours
+ */
+const stripTime = (date: Date): Date => new Date(date.toDateString());
+
 const getMilestoneNumber = async (
   client: GithubClient,
   milestoneName: string,
   useGlobExpression?: boolean,
+  allowInactives?: boolean,
 ): Promise<number> => {
   const response = await client.rest.issues.listMilestones({
     owner: github.context.repo.owner,
@@ -18,8 +24,9 @@ const getMilestoneNumber = async (
   core.debug(`listMilestones response:\n${JSON.stringify(response)}`);
   core.info(`Milestones available:\n${JSON.stringify(response.data.map(milestone => milestone.title))}`);
 
+  const today = stripTime(new Date());
   const milestone = response.data
-    .filter(m => !m.due_on || new Date(m.due_on) >= new Date())
+    .filter(m => !m.due_on || allowInactives || stripTime(new Date(m.due_on)) >= today)
     .find(m =>
       useGlobExpression
         ? Minimatch(m.title, milestoneName, { nocase: true, debug: core.isDebug() })
@@ -118,7 +125,7 @@ export const assignMilestone = async (): Promise<void> => {
   core.debug(`User ${authorLogin} is in the allowed users.`);
 
   // Get milestone
-  const milestoneNumber = await getMilestoneNumber(client, milestoneName, useGlobExpression);
+  const milestoneNumber = await getMilestoneNumber(client, milestoneName, useGlobExpression, allowInactives);
 
   // Add to milestone
   const prNumber = github.context.payload.pull_request?.number!;
