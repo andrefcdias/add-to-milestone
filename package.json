@@ -35,7 +35,7 @@
     "@types/jest": "29.2.0",
     "@types/minimatch": "5.1.2",
     "@types/node": "18.11.18",
-    "@typescript-eslint/parser": "5.48.0",
+    "@typescript-eslint/parser": "5.48.2",
     "@vercel/ncc": "0.34.0",
     "casual": "1.6.2",
     "eslint": "8.31.0",
